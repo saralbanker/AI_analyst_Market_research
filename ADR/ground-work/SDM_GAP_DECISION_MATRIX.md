@@ -1,0 +1,8 @@
+# SDM_GAP_DECISION_MATRIX
+
+| Gap | Winning Approach | Confidence | Evidence Strength | Owner Alignment | Survivability Score | Profitability Impact | Rework Risk |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| **Gap-01: Correlation Control** | Approach A + B Hybrid (Categorical Soft-Cap + Sector Heat Limit: Max 2 positions / 40% capital per sector) | High | High (Industry MVP standard for retail swing trading) | High (Protects small capital) | 85/100 | Medium (Slight starvation risk during narrow momentum rallies) | Low |
+| **Gap-02: Attribution MVP** | Approach A (Tag-Based Expectancy Matrix: Segment by Setup, Regime, Duration) | High | High (Standard active manager decomposition method) | High (Provides learning loop without institutional bloat) | 95/100 | High (Culls decaying alpha edges before they bleed capital) | Medium (Requires strict schema discipline) |
+| **Gap-03: Confidence vs EV Resolution** | Approach D (EV = Binary Gatekeeper Filter, Confidence = Capital Allocation Sizer) | Very High | High (Academic expectancy theory + subjective conviction sizing) | High (Respects Probability-First and Technicals > News) | 90/100 | High (Prevents negative EV trades entirely) | Low |
+| **Gap-04: Human Override Boundaries** | Approach B + D Hybrid (Asymmetric Authority: Entries require human approval; Risk Halts are 100% autonomous) | Absolute | Very High (Flash crash latency constraints) | Medium (Reduces human absolute control, but enforces Capital Preservation > Ego) | 100/100 | Very High (Prevents catastrophic total-loss wipeouts) | High (Architecture must support a dual execution pipeline) |
