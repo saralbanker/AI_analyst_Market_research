@@ -1,0 +1,15 @@
+{
+  "buzz": {
+    "articlesInLastWeek": 12,
+    "buzz": 1.1,
+    "weeklyAverage": 10.9
+  },
+  "companyNewsScore": 0.78,
+  "sectorAverageBullishPercent": 0.5,
+  "sectorAverageNewsScore": 0.55,
+  "sentiment": {
+    "bearishPercent": 0.12,
+    "bullishPercent": 0.88
+  },
+  "symbol": "RELIANCE"
+}

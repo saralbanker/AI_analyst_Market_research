@@ -235,7 +235,9 @@ Transient state exists only during cycle execution and does not require persiste
 Reconstructability allows the system to restore logical state from primary persistent sources, serving as the system's ultimate disaster recovery and audit mechanism.
 
 ### 8.1 Audit Reconstruction
-The audit log (MOD-10) is reconstructed or validated using cryptographic link validation. Each recorded event block must contain a hash signature of the preceding block, creating a cryptographically verifiable tamper-evident chain back to system genesis.
+The audit log (MOD-10) must be validated against its constitutional immutability and tamper-evidence properties. Any reconstruction or validation procedure must confirm that no record has been modified, deleted, or re-ordered since original capture. The specific mechanism for achieving tamper-evidence verification (cryptographic methods, storage-level guarantees, hardware enforcement, or any other approach) is an implementation decision constrained by the immutability property defined in SADR CHANGE-06 and ADR-000 P-07, and reserved for downstream technology-selection ADRs per ADR-000 P-12.
+
+*(ADR-005A Amendment 1 applied — OBS-01: removed implementation-specific cryptographic hash chain mechanism; replaced with constitutional property requirement per SDM Part V, ADR-000 P-12, ADR-004 Section 1.5.)*
 
 ### 8.2 Portfolio Reconstruction
 If portfolio state (MOD-09) becomes corrupted, it must be reconstructed by replaying the chronological sequence of human-confirmed trade actions from the authoritative external execution record. The formula is:
@@ -247,8 +249,11 @@ The active flags for State 2 (Lockout), State 3 (Suspension), and State 4 (Hard 
 State 1 (Governance Halt) cannot be reconstructed purely from data parameters because its exit is governed by human authorization. If State 1 was active at crash time, the system must recover its active flag directly from persistent storage.
 
 ### 8.4 Attribution Reconstruction
-Attribution records (MOD-08) are reconstructed by re-processing historical recommendations (from the audit log) against recorded human decisions and historical market outcome datasets:
+Attribution records (MOD-08) are reconstructed by re-processing historical data through the same constitutionally authorized input pathways defined for CAP-21 and CAP-22 in SADR: persisted human decisions sourced from MOD-07, persisted portfolio state sourced from MOD-09, and market outcome data re-ingested from external sources via the MOD-01 pathway (as amended by ADR-003B for the MOD-01 → MOD-08 and MOD-02 → MOD-08 edges). No reconstruction path may read from MOD-10 (audit), as this would create a prohibited MOD-10 → MOD-08 dependency (AF 5.4; ADR-000 P-07; ADR-004 DEP-03, OWN-04). The reconstruction formula is:
 $$\text{Attribution}_t = f(\text{Recommendations}_{[0,t]}, \text{Human Decisions}_{[0,t]}, \text{Market Outcomes}_{[0,t]})$$
+where Recommendations are sourced from their persisted post-gate records in MOD-07, Human Decisions are sourced from MOD-07's persisted primary records, and Market Outcomes are re-ingested from external market data sources through MOD-01.
+
+*(ADR-005A Amendment 2 applied — OBS-05: removed prohibited audit log read path; replaced with constitutionally authorized sources per SADR CAP-30 Boundary, AF 5.4, ADR-000 P-07, ADR-004 DEP-03/OWN-04.)*
 
 ---
 
@@ -281,7 +286,9 @@ To prevent the recurrence of the validation discrepancies resolved by change con
 The state and persistence model is validated against the frozen authority hierarchy:
 
 ### 10.1 Validation Against SDM_V2.3
-- **SDM-CONST-06 & SDM-CONST-13:** The state model enforces the human approval gate as the sole transition path to trade actions. System recommendations are modeled as transient/read-only advisory states.
+- **SDM-CONST-06 & SDM-CONST-13:** The state model enforces the human approval gate as the sole transition path to trade actions. System recommendations are modeled as cycle-persistent advisory states during the active recommendation cycle, becoming cross-cycle persistent immutable records upon capture in the audit log (MOD-10) and as observational inputs to attribution (MOD-08), consistent with SDM-10 Audit and Section 3.7 of this document.
+
+*(ADR-005A Amendment 3 applied — OBS-04: resolved internal inconsistency between Section 3.7 and Section 10.1; aligned with the constitutionally precise characterization per SDM-10 Audit, SDM-13 Rules 1-3, SADR CAP-30.)*
 - **SDM-CONST-14:** The four halt flags are stored and evaluated as independent state elements in MOD-06, preserving halt independence.
 - **SDM-13:** Attribution records (System Alpha and Override Delta) are modeled as distinct, non-merged, read-only persistent layers.
 

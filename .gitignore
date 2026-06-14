@@ -2,3 +2,18 @@
 .directory
 .DS_Store
 Thumbs.db
+
+# Python
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# Local persistence (Phase 1+)
+data/*.db
+
+# Local credentials (PLAN-002 R1) -- see src/.env.example for the template
+src/.env
+
+# Generated reports
+reports/*.pdf
+reports/*.png

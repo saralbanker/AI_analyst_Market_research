@@ -1,0 +1,23 @@
+[
+  {
+    "Country": "India",
+    "Category": "GDP Growth Rate",
+    "LatestValue": 7.6,
+    "Unit": "percent",
+    "Frequency": "Quarterly"
+  },
+  {
+    "Country": "India",
+    "Category": "Inflation Rate",
+    "LatestValue": 5.1,
+    "Unit": "percent",
+    "Frequency": "Monthly"
+  },
+  {
+    "Country": "India",
+    "Category": "Interest Rate",
+    "LatestValue": 6.5,
+    "Unit": "percent",
+    "Frequency": "Daily"
+  }
+]

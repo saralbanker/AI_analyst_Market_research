@@ -1,0 +1,24 @@
+[
+  {
+    "category": "company",
+    "datetime": 1718200000,
+    "headline": "Reliance Industries announces new energy investment plan",
+    "id": 1001,
+    "image": "https://example.com/img1.jpg",
+    "related": "RELIANCE",
+    "source": "Reuters",
+    "summary": "Reliance Industries outlined a multi-year investment plan in renewable energy.",
+    "url": "https://example.com/news/1001"
+  },
+  {
+    "category": "company",
+    "datetime": 1718286400,
+    "headline": "Reliance Q1 earnings beat analyst expectations",
+    "id": 1002,
+    "image": "https://example.com/img2.jpg",
+    "related": "RELIANCE",
+    "source": "Bloomberg",
+    "summary": "Reliance posted quarterly earnings above consensus estimates.",
+    "url": "https://example.com/news/1002"
+  }
+]
