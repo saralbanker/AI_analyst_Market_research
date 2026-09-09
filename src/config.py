@@ -31,6 +31,13 @@ OPTIONAL_KEYS = {
     "TRADING_ECONOMICS_SECRET",
     "ALPHA_VANTAGE_API_KEY",
     "TWELVE_DATA_API_KEY",
+    # Dhan — CAP-02 independent second market-data vendor.
+    # DHAN_API_KEY: paste the live access token directly (client_id extracted from JWT).
+    # DHAN_CLIENT_ID + DHAN_CLIENT_SECRET: used by scripts/generate_dhan_token.py
+    # for automated daily token rotation via systemd/dhan-token-refresh.timer.
+    "DHAN_API_KEY",
+    "DHAN_CLIENT_ID",
+    "DHAN_CLIENT_SECRET",
 }
 
 # Variables that must be present AND non-empty.

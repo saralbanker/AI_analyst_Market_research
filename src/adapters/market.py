@@ -4,6 +4,13 @@
 `mod01_market_data.fixtures`: a list of
 `{"day": int, "open": float, "high": float, "low": float, "close": float,
 "volume": int}` dicts (validated by `cap_data_quality.validate_bars`).
+
+Vendors:
+  variant="a" (primary)   — Upstox (UpstoxMarketAdapter)
+  variant="b" (secondary) — Dhan   (DhanMarketAdapter)  ← CAP-02 independence
+
+Both adapters map their vendor-specific responses to the same canonical bar
+shape so cross_verify() can compare them without knowing the source.
 """
 
 import datetime
@@ -106,5 +113,97 @@ class UpstoxMarketAdapter:
                 })
             except (ValueError, TypeError) as exc:
                 raise AdapterError(f"Upstox candle malformed: {candle!r}") from exc
+
+        return bars
+
+
+class DhanMarketAdapter:
+    """Dhan historical-candle market data adapter (CAP-02 independent second vendor).
+
+    Requires DHAN_CLIENT_ID in env and a valid token in secrets/dhan_token.json
+    (written by scripts/generate_dhan_token.py). Fetches daily candles for the
+    last 90 days via Dhan's v2 historical-candle endpoint and maps them to the
+    canonical bar shape so cap02_cross_verification can compare them against
+    Upstox bars.
+
+    Dhan returns arrays (open[], high[], low[], close[], volume[], timestamp[])
+    for the requested date range; bars are re-indexed 0..n-1 chronologically.
+    """
+
+    BASE_URL = "https://api.dhan.co"
+
+    def __init__(self, client_id: str, access_token: str):
+        self._client_id = client_id
+        self._access_token = access_token
+
+    def fetch_ohlcv(self, symbol: str) -> list[dict]:
+        if not (self._client_id and self._access_token):
+            raise AdapterNotConfigured("Dhan credentials not configured")
+
+        import requests
+
+        from src.adapters.dhan_instruments import security_id_for
+
+        security_id = security_id_for(symbol)
+
+        to_date = datetime.date.today()
+        from_date = to_date - datetime.timedelta(days=90)
+
+        payload = {
+            "securityId": security_id,
+            "exchangeSegment": "NSE_EQ",
+            "instrument": "EQUITY",
+            "expiryCode": 0,
+            "oi": False,
+            "fromDate": from_date.isoformat(),
+            "toDate": to_date.isoformat(),
+            "type": "Day",
+        }
+
+        try:
+            response = requests.post(
+                f"{self.BASE_URL}/v2/charts/historical",
+                json=payload,
+                headers={
+                    "access-token": self._access_token,
+                    "X-Client-Id": self._client_id,
+                    "Content-Type": "application/json",
+                    "Accept": "application/json",
+                },
+                timeout=10,
+            )
+            response.raise_for_status()
+            data = response.json()
+        except requests.RequestException as exc:
+            raise AdapterError(f"Dhan request failed: {exc}") from exc
+
+        try:
+            opens = data["open"]
+            highs = data["high"]
+            lows = data["low"]
+            closes = data["close"]
+            volumes = data["volume"]
+        except (KeyError, TypeError) as exc:
+            raise AdapterError(
+                f"Dhan historical-candle returned unexpected shape: {data!r}"
+            ) from exc
+
+        bars = []
+        for day_index, (o, h, l, c, v) in enumerate(
+            zip(opens, highs, lows, closes, volumes)
+        ):
+            try:
+                bars.append({
+                    "day": day_index,
+                    "open": float(o),
+                    "high": float(h),
+                    "low": float(l),
+                    "close": float(c),
+                    "volume": int(v),
+                })
+            except (ValueError, TypeError) as exc:
+                raise AdapterError(
+                    f"Dhan candle malformed at index {day_index}: {exc}"
+                ) from exc
 
         return bars

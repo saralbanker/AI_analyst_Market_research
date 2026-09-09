@@ -1,0 +1,22 @@
+[Unit]
+Description=Dhan daily access-token refresh — fires at 06:00 IST
+Documentation=file:///mnt/data/rj/AI_analyst_Market_research/systemd/dhan-token-refresh.service
+
+[Timer]
+# Fire at 06:00:00 India Standard Time every day.
+# NSE opens at 09:15 IST — this gives a 3h15m window for retry on failure.
+OnCalendar=*-*-* 00:30:00 UTC
+
+# Persistent=true: if the machine was off at fire time, run ONCE on next boot.
+# This guarantees the token is always refreshed even after a reboot.
+Persistent=true
+
+# Randomize start within 5 minutes to avoid thundering-herd if multiple
+# services fire at the same second.
+RandomizedDelaySec=5min
+
+# Trigger the matching .service unit.
+Unit=dhan-token-refresh.service
+
+[Install]
+WantedBy=timers.target

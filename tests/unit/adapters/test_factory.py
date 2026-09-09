@@ -5,10 +5,16 @@ any adapter method (which would become a live network call once `fetch_*`
 bodies are implemented).
 """
 
+import json
+import datetime
+
+import pytest
+
 from src.adapters import factory
-from src.adapters.market import FixtureMarketAdapter, UpstoxMarketAdapter
+from src.adapters.market import DhanMarketAdapter, FixtureMarketAdapter, UpstoxMarketAdapter
 from src.adapters.news import FinnhubNewsAdapter, StubNewsAdapter
 from src.adapters.macro import StubMacroAdapter, TradingEconomicsMacroAdapter
+from src.security.token_loader import TOKEN_FILE
 
 UPSTOX_VARS = ("UPSTOX_API_KEY", "UPSTOX_API_SECRET", "UPSTOX_ACCESS_TOKEN")
 TE_VARS = ("TRADING_ECONOMICS_API_KEY", "TRADING_ECONOMICS_SECRET")
@@ -60,6 +66,54 @@ def test_macro_adapter_with_credentials_selects_trading_economics(monkeypatch):
     monkeypatch.setenv("TRADING_ECONOMICS_API_KEY", "key")
     monkeypatch.setenv("TRADING_ECONOMICS_SECRET", "secret")
     assert isinstance(factory.get_macro_adapter(), TradingEconomicsMacroAdapter)
+
+
+def test_market_adapter_variant_b_defaults_to_fixture_no_credentials(monkeypatch):
+    monkeypatch.delenv("DHAN_CLIENT_ID", raising=False)
+    monkeypatch.delenv("DHAN_API_KEY", raising=False)
+    _clear(monkeypatch, *UPSTOX_VARS)
+    adapter = factory.get_market_adapter(variant="b")
+    assert isinstance(adapter, FixtureMarketAdapter)
+
+
+def test_market_adapter_variant_b_falls_back_when_token_missing(
+    monkeypatch, tmp_path
+):
+    monkeypatch.setenv("DHAN_CLIENT_ID", "test-client")
+    monkeypatch.delenv("DHAN_API_KEY", raising=False)
+    _clear(monkeypatch, *UPSTOX_VARS)
+    # Patch TOKEN_FILE to a nonexistent path so TokenUnavailable is raised.
+    monkeypatch.setattr("src.security.token_loader.TOKEN_FILE", tmp_path / "no_token.json")
+    adapter = factory.get_market_adapter(variant="b")
+    # Falls back through Upstox path to fixture (no Upstox creds either).
+    assert isinstance(adapter, FixtureMarketAdapter)
+
+
+def test_market_adapter_variant_b_selects_dhan_via_api_key(monkeypatch):
+    """DHAN_API_KEY + DHAN_CLIENT_ID env vars → DhanMarketAdapter (no secrets file)."""
+    monkeypatch.setenv("DHAN_API_KEY", "live-access-token")
+    monkeypatch.setenv("DHAN_CLIENT_ID", "test-client-direct")
+    adapter = factory.get_market_adapter(variant="b")
+    assert isinstance(adapter, DhanMarketAdapter)
+
+
+def test_market_adapter_variant_b_selects_dhan_when_configured(monkeypatch, tmp_path):
+    monkeypatch.setenv("DHAN_CLIENT_ID", "test-client")
+    # Write a valid (non-expired) token file at the patched path.
+    from zoneinfo import ZoneInfo
+    IST = ZoneInfo("Asia/Kolkata")
+    record = {
+        "access_token": "test-token-abc",
+        "client_id": "test-client",
+        "obtained_at": datetime.datetime.now(IST).isoformat(),
+        "expires_at": (datetime.datetime.now(IST) + datetime.timedelta(hours=12)).isoformat(),
+        "version": 1,
+    }
+    token_path = tmp_path / "dhan_token.json"
+    token_path.write_text(json.dumps(record))
+    monkeypatch.setattr("src.security.token_loader.TOKEN_FILE", token_path)
+    adapter = factory.get_market_adapter(variant="b")
+    assert isinstance(adapter, DhanMarketAdapter)
 
 
 def test_factory_never_calls_adapter_methods(monkeypatch):

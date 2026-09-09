@@ -17,3 +17,10 @@ src/.env
 # Generated reports
 reports/*.pdf
 reports/*.png
+
+# Dhan token lifecycle — runtime secrets (NEVER commit)
+secrets/dhan_token.json
+secrets/.dhan_token_tmp_*
+
+# Operational logs (ephemeral runtime output)
+logs/token_refresh.log

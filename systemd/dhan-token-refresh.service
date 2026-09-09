@@ -1,0 +1,38 @@
+[Unit]
+Description=Dhan daily access-token refresh
+Documentation=file:///mnt/data/rj/AI_analyst_Market_research/scripts/generate_dhan_token.py
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+
+# Run as the owner user — never root.
+# Replace 'virus' with the actual username if different:
+#   User=<your-username>
+User=virus
+
+# Working directory is the repo root so relative paths resolve correctly.
+WorkingDirectory=/mnt/data/rj/AI_analyst_Market_research
+
+# Point to the system Python that has 'requests' installed.
+ExecStart=/usr/bin/python3 /mnt/data/rj/AI_analyst_Market_research/scripts/generate_dhan_token.py
+
+# On failure, give the timer two retries at 60-second intervals.
+Restart=on-failure
+RestartSec=60s
+StartLimitBurst=3
+StartLimitIntervalSec=300s
+
+# Redirect stdout + stderr to systemd journal (readable with journalctl -u dhan-token-refresh).
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=dhan-token-refresh
+
+# Minimal capability set — this unit never needs network admin or raw sockets.
+CapabilityBoundingSet=
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ReadWritePaths=/mnt/data/rj/AI_analyst_Market_research/secrets
+ReadWritePaths=/mnt/data/rj/AI_analyst_Market_research/logs
